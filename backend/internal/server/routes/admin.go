@@ -44,6 +44,9 @@ func RegisterAdminRoutes(
 		// 代理管理
 		registerProxyRoutes(admin, h)
 
+		// daily check-in
+		registerCheckinRoutes(admin, h)
+
 		// 卡密管理
 		registerRedeemCodeRoutes(admin, h)
 
@@ -646,5 +649,14 @@ func registerAffiliateRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
 			users.PUT("/:user_id", h.Admin.Affiliate.UpdateUserSettings)
 			users.DELETE("/:user_id", h.Admin.Affiliate.ClearUserSettings)
 		}
+	}
+}
+
+func registerCheckinRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	checkin := admin.Group("/checkin")
+	{
+		checkin.GET("/settings", h.Admin.Checkin.GetSettings)
+		checkin.PUT("/settings", h.Admin.Checkin.UpdateSettings)
+		checkin.GET("/logs", h.Admin.Checkin.ListLogs)
 	}
 }

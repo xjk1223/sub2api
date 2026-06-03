@@ -16,6 +16,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitordailyrollup"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorhistory"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorrequesttemplate"
+	"github.com/Wei-Shaw/sub2api/ent/checkinlog"
 	"github.com/Wei-Shaw/sub2api/ent/errorpassthroughrule"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/idempotencyrecord"
@@ -690,6 +691,16 @@ func init() {
 	channelmonitorrequesttemplate.DefaultBodyOverrideMode = channelmonitorrequesttemplateDescBodyOverrideMode.Default.(string)
 	// channelmonitorrequesttemplate.BodyOverrideModeValidator is a validator for the "body_override_mode" field. It is called by the builders before save.
 	channelmonitorrequesttemplate.BodyOverrideModeValidator = channelmonitorrequesttemplateDescBodyOverrideMode.Validators[0].(func(string) error)
+	checkinlogFields := schema.CheckinLog{}.Fields()
+	_ = checkinlogFields
+	// checkinlogDescConsecutiveDays is the schema descriptor for consecutive_days field.
+	checkinlogDescConsecutiveDays := checkinlogFields[2].Descriptor()
+	// checkinlog.DefaultConsecutiveDays holds the default value on creation for the consecutive_days field.
+	checkinlog.DefaultConsecutiveDays = checkinlogDescConsecutiveDays.Default.(int)
+	// checkinlogDescCreatedAt is the schema descriptor for created_at field.
+	checkinlogDescCreatedAt := checkinlogFields[4].Descriptor()
+	// checkinlog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	checkinlog.DefaultCreatedAt = checkinlogDescCreatedAt.Default.(func() time.Time)
 	errorpassthroughruleMixin := schema.ErrorPassthroughRule{}.Mixin()
 	errorpassthroughruleMixinFields0 := errorpassthroughruleMixin[0].Fields()
 	_ = errorpassthroughruleMixinFields0

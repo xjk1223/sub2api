@@ -23,6 +23,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitordailyrollup"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorhistory"
 	"github.com/Wei-Shaw/sub2api/ent/channelmonitorrequesttemplate"
+	"github.com/Wei-Shaw/sub2api/ent/checkinlog"
 	"github.com/Wei-Shaw/sub2api/ent/errorpassthroughrule"
 	"github.com/Wei-Shaw/sub2api/ent/group"
 	"github.com/Wei-Shaw/sub2api/ent/idempotencyrecord"
@@ -71,6 +72,7 @@ const (
 	TypeChannelMonitorDailyRollup     = "ChannelMonitorDailyRollup"
 	TypeChannelMonitorHistory         = "ChannelMonitorHistory"
 	TypeChannelMonitorRequestTemplate = "ChannelMonitorRequestTemplate"
+	TypeCheckinLog                    = "CheckinLog"
 	TypeErrorPassthroughRule          = "ErrorPassthroughRule"
 	TypeGroup                         = "Group"
 	TypeIdempotencyRecord             = "IdempotencyRecord"
@@ -13527,6 +13529,671 @@ func (m *ChannelMonitorRequestTemplateMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ChannelMonitorRequestTemplate edge %s", name)
+}
+
+// CheckinLogMutation represents an operation that mutates the CheckinLog nodes in the graph.
+type CheckinLogMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *int64
+	amount              *float64
+	addamount           *float64
+	consecutive_days    *int
+	addconsecutive_days *int
+	checkin_date        *time.Time
+	created_at          *time.Time
+	clearedFields       map[string]struct{}
+	user                *int64
+	cleareduser         bool
+	done                bool
+	oldValue            func(context.Context) (*CheckinLog, error)
+	predicates          []predicate.CheckinLog
+}
+
+var _ ent.Mutation = (*CheckinLogMutation)(nil)
+
+// checkinlogOption allows management of the mutation configuration using functional options.
+type checkinlogOption func(*CheckinLogMutation)
+
+// newCheckinLogMutation creates new mutation for the CheckinLog entity.
+func newCheckinLogMutation(c config, op Op, opts ...checkinlogOption) *CheckinLogMutation {
+	m := &CheckinLogMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCheckinLog,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCheckinLogID sets the ID field of the mutation.
+func withCheckinLogID(id int64) checkinlogOption {
+	return func(m *CheckinLogMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *CheckinLog
+		)
+		m.oldValue = func(ctx context.Context) (*CheckinLog, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().CheckinLog.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCheckinLog sets the old CheckinLog of the mutation.
+func withCheckinLog(node *CheckinLog) checkinlogOption {
+	return func(m *CheckinLogMutation) {
+		m.oldValue = func(context.Context) (*CheckinLog, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CheckinLogMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CheckinLogMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *CheckinLogMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *CheckinLogMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().CheckinLog.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetUserID sets the "user_id" field.
+func (m *CheckinLogMutation) SetUserID(i int64) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *CheckinLogMutation) UserID() (r int64, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the CheckinLog entity.
+// If the CheckinLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CheckinLogMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *CheckinLogMutation) ResetUserID() {
+	m.user = nil
+}
+
+// SetAmount sets the "amount" field.
+func (m *CheckinLogMutation) SetAmount(f float64) {
+	m.amount = &f
+	m.addamount = nil
+}
+
+// Amount returns the value of the "amount" field in the mutation.
+func (m *CheckinLogMutation) Amount() (r float64, exists bool) {
+	v := m.amount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAmount returns the old "amount" field's value of the CheckinLog entity.
+// If the CheckinLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CheckinLogMutation) OldAmount(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAmount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAmount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAmount: %w", err)
+	}
+	return oldValue.Amount, nil
+}
+
+// AddAmount adds f to the "amount" field.
+func (m *CheckinLogMutation) AddAmount(f float64) {
+	if m.addamount != nil {
+		*m.addamount += f
+	} else {
+		m.addamount = &f
+	}
+}
+
+// AddedAmount returns the value that was added to the "amount" field in this mutation.
+func (m *CheckinLogMutation) AddedAmount() (r float64, exists bool) {
+	v := m.addamount
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAmount resets all changes to the "amount" field.
+func (m *CheckinLogMutation) ResetAmount() {
+	m.amount = nil
+	m.addamount = nil
+}
+
+// SetConsecutiveDays sets the "consecutive_days" field.
+func (m *CheckinLogMutation) SetConsecutiveDays(i int) {
+	m.consecutive_days = &i
+	m.addconsecutive_days = nil
+}
+
+// ConsecutiveDays returns the value of the "consecutive_days" field in the mutation.
+func (m *CheckinLogMutation) ConsecutiveDays() (r int, exists bool) {
+	v := m.consecutive_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldConsecutiveDays returns the old "consecutive_days" field's value of the CheckinLog entity.
+// If the CheckinLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CheckinLogMutation) OldConsecutiveDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldConsecutiveDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldConsecutiveDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldConsecutiveDays: %w", err)
+	}
+	return oldValue.ConsecutiveDays, nil
+}
+
+// AddConsecutiveDays adds i to the "consecutive_days" field.
+func (m *CheckinLogMutation) AddConsecutiveDays(i int) {
+	if m.addconsecutive_days != nil {
+		*m.addconsecutive_days += i
+	} else {
+		m.addconsecutive_days = &i
+	}
+}
+
+// AddedConsecutiveDays returns the value that was added to the "consecutive_days" field in this mutation.
+func (m *CheckinLogMutation) AddedConsecutiveDays() (r int, exists bool) {
+	v := m.addconsecutive_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetConsecutiveDays resets all changes to the "consecutive_days" field.
+func (m *CheckinLogMutation) ResetConsecutiveDays() {
+	m.consecutive_days = nil
+	m.addconsecutive_days = nil
+}
+
+// SetCheckinDate sets the "checkin_date" field.
+func (m *CheckinLogMutation) SetCheckinDate(t time.Time) {
+	m.checkin_date = &t
+}
+
+// CheckinDate returns the value of the "checkin_date" field in the mutation.
+func (m *CheckinLogMutation) CheckinDate() (r time.Time, exists bool) {
+	v := m.checkin_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCheckinDate returns the old "checkin_date" field's value of the CheckinLog entity.
+// If the CheckinLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CheckinLogMutation) OldCheckinDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCheckinDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCheckinDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCheckinDate: %w", err)
+	}
+	return oldValue.CheckinDate, nil
+}
+
+// ResetCheckinDate resets all changes to the "checkin_date" field.
+func (m *CheckinLogMutation) ResetCheckinDate() {
+	m.checkin_date = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *CheckinLogMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *CheckinLogMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the CheckinLog entity.
+// If the CheckinLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CheckinLogMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *CheckinLogMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (m *CheckinLogMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[checkinlog.FieldUserID] = struct{}{}
+}
+
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *CheckinLogMutation) UserCleared() bool {
+	return m.cleareduser
+}
+
+// UserIDs returns the "user" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UserID instead. It exists only for internal usage by the builders.
+func (m *CheckinLogMutation) UserIDs() (ids []int64) {
+	if id := m.user; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUser resets all changes to the "user" edge.
+func (m *CheckinLogMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
+}
+
+// Where appends a list predicates to the CheckinLogMutation builder.
+func (m *CheckinLogMutation) Where(ps ...predicate.CheckinLog) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CheckinLogMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CheckinLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CheckinLog, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CheckinLogMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CheckinLogMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (CheckinLog).
+func (m *CheckinLogMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CheckinLogMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.user != nil {
+		fields = append(fields, checkinlog.FieldUserID)
+	}
+	if m.amount != nil {
+		fields = append(fields, checkinlog.FieldAmount)
+	}
+	if m.consecutive_days != nil {
+		fields = append(fields, checkinlog.FieldConsecutiveDays)
+	}
+	if m.checkin_date != nil {
+		fields = append(fields, checkinlog.FieldCheckinDate)
+	}
+	if m.created_at != nil {
+		fields = append(fields, checkinlog.FieldCreatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CheckinLogMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case checkinlog.FieldUserID:
+		return m.UserID()
+	case checkinlog.FieldAmount:
+		return m.Amount()
+	case checkinlog.FieldConsecutiveDays:
+		return m.ConsecutiveDays()
+	case checkinlog.FieldCheckinDate:
+		return m.CheckinDate()
+	case checkinlog.FieldCreatedAt:
+		return m.CreatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CheckinLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case checkinlog.FieldUserID:
+		return m.OldUserID(ctx)
+	case checkinlog.FieldAmount:
+		return m.OldAmount(ctx)
+	case checkinlog.FieldConsecutiveDays:
+		return m.OldConsecutiveDays(ctx)
+	case checkinlog.FieldCheckinDate:
+		return m.OldCheckinDate(ctx)
+	case checkinlog.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown CheckinLog field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CheckinLogMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case checkinlog.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case checkinlog.FieldAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAmount(v)
+		return nil
+	case checkinlog.FieldConsecutiveDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetConsecutiveDays(v)
+		return nil
+	case checkinlog.FieldCheckinDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCheckinDate(v)
+		return nil
+	case checkinlog.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CheckinLog field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CheckinLogMutation) AddedFields() []string {
+	var fields []string
+	if m.addamount != nil {
+		fields = append(fields, checkinlog.FieldAmount)
+	}
+	if m.addconsecutive_days != nil {
+		fields = append(fields, checkinlog.FieldConsecutiveDays)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CheckinLogMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case checkinlog.FieldAmount:
+		return m.AddedAmount()
+	case checkinlog.FieldConsecutiveDays:
+		return m.AddedConsecutiveDays()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CheckinLogMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case checkinlog.FieldAmount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAmount(v)
+		return nil
+	case checkinlog.FieldConsecutiveDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddConsecutiveDays(v)
+		return nil
+	}
+	return fmt.Errorf("unknown CheckinLog numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CheckinLogMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CheckinLogMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CheckinLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown CheckinLog nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CheckinLogMutation) ResetField(name string) error {
+	switch name {
+	case checkinlog.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case checkinlog.FieldAmount:
+		m.ResetAmount()
+		return nil
+	case checkinlog.FieldConsecutiveDays:
+		m.ResetConsecutiveDays()
+		return nil
+	case checkinlog.FieldCheckinDate:
+		m.ResetCheckinDate()
+		return nil
+	case checkinlog.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckinLog field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CheckinLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.user != nil {
+		edges = append(edges, checkinlog.EdgeUser)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CheckinLogMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case checkinlog.EdgeUser:
+		if id := m.user; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CheckinLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CheckinLogMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CheckinLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareduser {
+		edges = append(edges, checkinlog.EdgeUser)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CheckinLogMutation) EdgeCleared(name string) bool {
+	switch name {
+	case checkinlog.EdgeUser:
+		return m.cleareduser
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CheckinLogMutation) ClearEdge(name string) error {
+	switch name {
+	case checkinlog.EdgeUser:
+		m.ClearUser()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckinLog unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CheckinLogMutation) ResetEdge(name string) error {
+	switch name {
+	case checkinlog.EdgeUser:
+		m.ResetUser()
+		return nil
+	}
+	return fmt.Errorf("unknown CheckinLog edge %s", name)
 }
 
 // ErrorPassthroughRuleMutation represents an operation that mutates the ErrorPassthroughRule nodes in the graph.
@@ -38219,6 +38886,9 @@ type UserMutation struct {
 	platform_quotas               map[int64]struct{}
 	removedplatform_quotas        map[int64]struct{}
 	clearedplatform_quotas        bool
+	checkin_logs                  map[int64]struct{}
+	removedcheckin_logs           map[int64]struct{}
+	clearedcheckin_logs           bool
 	done                          bool
 	oldValue                      func(context.Context) (*User, error)
 	predicates                    []predicate.User
@@ -40031,6 +40701,60 @@ func (m *UserMutation) ResetPlatformQuotas() {
 	m.removedplatform_quotas = nil
 }
 
+// AddCheckinLogIDs adds the "checkin_logs" edge to the CheckinLog entity by ids.
+func (m *UserMutation) AddCheckinLogIDs(ids ...int64) {
+	if m.checkin_logs == nil {
+		m.checkin_logs = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.checkin_logs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCheckinLogs clears the "checkin_logs" edge to the CheckinLog entity.
+func (m *UserMutation) ClearCheckinLogs() {
+	m.clearedcheckin_logs = true
+}
+
+// CheckinLogsCleared reports if the "checkin_logs" edge to the CheckinLog entity was cleared.
+func (m *UserMutation) CheckinLogsCleared() bool {
+	return m.clearedcheckin_logs
+}
+
+// RemoveCheckinLogIDs removes the "checkin_logs" edge to the CheckinLog entity by IDs.
+func (m *UserMutation) RemoveCheckinLogIDs(ids ...int64) {
+	if m.removedcheckin_logs == nil {
+		m.removedcheckin_logs = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.checkin_logs, ids[i])
+		m.removedcheckin_logs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCheckinLogs returns the removed IDs of the "checkin_logs" edge to the CheckinLog entity.
+func (m *UserMutation) RemovedCheckinLogsIDs() (ids []int64) {
+	for id := range m.removedcheckin_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CheckinLogsIDs returns the "checkin_logs" edge IDs in the mutation.
+func (m *UserMutation) CheckinLogsIDs() (ids []int64) {
+	for id := range m.checkin_logs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCheckinLogs resets all changes to the "checkin_logs" edge.
+func (m *UserMutation) ResetCheckinLogs() {
+	m.checkin_logs = nil
+	m.clearedcheckin_logs = false
+	m.removedcheckin_logs = nil
+}
+
 // Where appends a list predicates to the UserMutation builder.
 func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -40640,7 +41364,7 @@ func (m *UserMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.api_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -40679,6 +41403,9 @@ func (m *UserMutation) AddedEdges() []string {
 	}
 	if m.platform_quotas != nil {
 		edges = append(edges, user.EdgePlatformQuotas)
+	}
+	if m.checkin_logs != nil {
+		edges = append(edges, user.EdgeCheckinLogs)
 	}
 	return edges
 }
@@ -40765,13 +41492,19 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCheckinLogs:
+		ids := make([]ent.Value, 0, len(m.checkin_logs))
+		for id := range m.checkin_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.removedapi_keys != nil {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -40810,6 +41543,9 @@ func (m *UserMutation) RemovedEdges() []string {
 	}
 	if m.removedplatform_quotas != nil {
 		edges = append(edges, user.EdgePlatformQuotas)
+	}
+	if m.removedcheckin_logs != nil {
+		edges = append(edges, user.EdgeCheckinLogs)
 	}
 	return edges
 }
@@ -40896,13 +41632,19 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case user.EdgeCheckinLogs:
+		ids := make([]ent.Value, 0, len(m.removedcheckin_logs))
+		for id := range m.removedcheckin_logs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.clearedapi_keys {
 		edges = append(edges, user.EdgeAPIKeys)
 	}
@@ -40942,6 +41684,9 @@ func (m *UserMutation) ClearedEdges() []string {
 	if m.clearedplatform_quotas {
 		edges = append(edges, user.EdgePlatformQuotas)
 	}
+	if m.clearedcheckin_logs {
+		edges = append(edges, user.EdgeCheckinLogs)
+	}
 	return edges
 }
 
@@ -40975,6 +41720,8 @@ func (m *UserMutation) EdgeCleared(name string) bool {
 		return m.clearedpending_auth_sessions
 	case user.EdgePlatformQuotas:
 		return m.clearedplatform_quotas
+	case user.EdgeCheckinLogs:
+		return m.clearedcheckin_logs
 	}
 	return false
 }
@@ -41029,6 +41776,9 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	case user.EdgePlatformQuotas:
 		m.ResetPlatformQuotas()
+		return nil
+	case user.EdgeCheckinLogs:
+		m.ResetCheckinLogs()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

@@ -1639,6 +1639,29 @@ func HasPlatformQuotasWith(preds ...predicate.UserPlatformQuota) predicate.User 
 	})
 }
 
+// HasCheckinLogs applies the HasEdge predicate on the "checkin_logs" edge.
+func HasCheckinLogs() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CheckinLogsTable, CheckinLogsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCheckinLogsWith applies the HasEdge predicate on the "checkin_logs" edge with a given conditions (other predicates).
+func HasCheckinLogsWith(preds ...predicate.CheckinLog) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newCheckinLogsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasUserAllowedGroups applies the HasEdge predicate on the "user_allowed_groups" edge.
 func HasUserAllowedGroups() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

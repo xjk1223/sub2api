@@ -98,6 +98,14 @@ func RegisterUserRoutes(
 			announcements.POST("/:id/read", h.Announcement.MarkRead)
 		}
 
+		// daily check-in
+		checkin := authenticated.Group("/user/checkin")
+		{
+			checkin.GET("/status", h.Checkin.GetCheckinStatus)
+			checkin.POST("", h.Checkin.DoCheckin)
+			checkin.GET("/history", h.Checkin.GetCheckinHistory)
+		}
+
 		// 卡密兑换
 		redeem := authenticated.Group("/redeem")
 		{

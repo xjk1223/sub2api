@@ -217,6 +217,16 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/checkin',
+    name: 'Checkin',
+    component: () => import('@/views/user/CheckinView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: '每日签到'
+    }
+  },
+  {
     path: '/redeem',
     name: 'Redeem',
     component: () => import('@/views/user/RedeemView.vue'),
@@ -510,6 +520,16 @@ const routes: RouteRecordRaw[] = [
       title: 'Proxy Management',
       titleKey: 'admin.proxies.title',
       descriptionKey: 'admin.proxies.description'
+    }
+  },
+  {
+    path: '/admin/checkin',
+    name: 'AdminCheckin',
+    component: () => import('@/views/admin/AdminCheckinSettings.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: '签到管理'
     }
   },
   {
